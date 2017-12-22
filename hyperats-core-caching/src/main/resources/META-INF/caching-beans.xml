@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	   http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+	   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+<bean name="ehCacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+    <property name="cacheManager" ref="ehcacheCacheManagerFactory"></property>
+</bean>
+
+<bean name="ehcacheCacheManagerFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+    <property name="configLocation" ref="ehcacheConfigResource"></property>
+</bean>
+
+<bean name="ehcacheConfigResource" class="com.hyperats.cache.factory.EhcacheCongurationFactoryBean">
+	<property name="cacheManagerName">
+		<value>${cache.manager.name}</value>
+	</property>
+	<property name="diskStorePath">
+		<value>${cache.disk.store.path}</value>
+	</property>
+</bean>
+
+<bean name="methodResultCacheKeyGenerator"
+        class="com.hyperats.cache.key.StringMethodSignatureKeyGenerator">
+    <property name="keyValueStrategy"><bean class="com.hyperats.cache.key.MethodSignatureConcatinationStrategy">
+    </bean></property>
+</bean>
+
+<bean name="methodResultCacheAspectFactory" class="com.hyperats.cache.factory.EhcacheMethodCacheAspectFactory">
+	<property name="ehcacheCacheManager" ref="ehCacheManager"/>
+	<property name="methodResultCacheKeyGenerator" ref="methodResultCacheKeyGenerator"/>
+</bean>
+
+<bean name="cacheService" class="com.hyperats.cache.manager.CacheServiceImpl">
+	<property name="ehcacheCacheManager" ref="ehCacheManager"></property>
+</bean>
+
+</beans>

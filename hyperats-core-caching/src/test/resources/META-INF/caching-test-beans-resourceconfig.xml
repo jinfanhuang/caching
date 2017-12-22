@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	   http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+	   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+	   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+<bean name="methodCallBean" class="com.hyperats.cache.test.MethodCallBean">
+</bean>
+
+<bean name="ehcacheConfigResource" class="org.springframework.core.io.InputStreamResource">
+    <constructor-arg ref="ehcacheConfigStream"></constructor-arg>
+</bean>
+
+<bean name="ehcacheConfigStream" class="java.io.ByteArrayInputStream">
+    <constructor-arg value="#{ehcacheConfig.bytes}"></constructor-arg>
+</bean>
+
+<bean name="ehcacheConfig" class="java.lang.String">
+    <constructor-arg><value><![CDATA[
+<ehcache name="com.hyperats.cache.resourcestream">
+	<diskStore path="java.io.tmpdir/ehcache"/>
+	<defaultCache
+		maxElementsInMemory="1000"
+		eternal="false"
+		timeToIdleSeconds="200"
+		timeToLiveSeconds="500"
+		overflowToDisk="true"
+	/>
+	<cache
+	    name="com.hyperats.methodResultCached"
+		maxElementsInMemory="10000"
+		eternal="false"
+		timeToIdleSeconds="300"
+		timeToLiveSeconds="600"
+		overflowToDisk="true"
+	/>
+</ehcache>
+]]></value></constructor-arg>
+</bean>
+
+<bean id="methodResultCacheAspectAspect" factory-bean="methodResultCacheAspectFactory" factory-method="getAspect">
+	<constructor-arg value="com.hyperats.methodResultCached"/>
+</bean>
+
+<aop:config>
+    <aop:aspect id="methodResultCacheAspect" ref="methodResultCacheAspectAspect">
+        <aop:pointcut expression="execution(* com.hyperats.cache.test.*.*(..))" id="methodCallBeanPointcut"/>
+        <aop:around method="around" pointcut-ref="methodCallBeanPointcut"/>
+    </aop:aspect>
+</aop:config>
+
+</beans>
